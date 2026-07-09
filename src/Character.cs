@@ -242,14 +242,17 @@ public class Character
     
     public async Task<string[]> CreateBasicDialogue(DialogueContext context)
     {
+        TimingLog.Checkpoint("[Character] CreateBasicDialogue 入口");
         string[] results = Array.Empty<string>();
         var prompts = new Prompts(context, this);
+        TimingLog.Checkpoint("[Character] Prompts 构建完成");
 
         const int maxRetryAttempts = 4;
         int timeoutSeconds = ModEntry.Config.QueryTimeout;
         int retryCount = 0;
         Exception lastException = null;
         LlmResponse result;
+        bool timingInferenceLogged = false; // 只在首次尝试时记录推理耗时
         
         for (int attempt = 0; attempt <= maxRetryAttempts; attempt++)
         {
@@ -260,6 +263,7 @@ public class Character
                 // Apply delay before retry (no delay for first attempt or second attempt)
                 if (attempt >= 2)
                 {
+                    TimingLog.Checkpoint($"[Character] 重试 #{attempt}，等待 5 秒延迟...");
                     await Task.Delay(TimeSpan.FromSeconds(5));
                     timeoutSeconds *= 2; // Double the timeout for each retry after the first
                 }
@@ -281,10 +285,24 @@ public class Character
 
                     result = await inferenceTask.WaitAsync(cts.Token);
 
+                    if (!timingInferenceLogged)
+                    {
+                        TimingLog.Checkpoint($"[Character] RunInference 完成 (尝试 #{attempt})");
+                        timingInferenceLogged = true;
+                    }
+
                     if (result.IsSuccess)
                     {
                         // Apply relaxed validation if this is the second retry
                         resultsInternal = ProcessLines(result.Text, retryCount > 2).ToArray();
+                        if (!timingInferenceLogged)
+                        {
+                            TimingLog.Checkpoint($"[Character] ProcessLines 完成 (尝试 #{attempt})");
+                        }
+                        else if (resultsInternal.Length > 0)
+                        {
+                            TimingLog.Checkpoint($"[Character] ProcessLines 完成 (尝试 #{attempt})");
+                        }
                     }
                     else
                     {

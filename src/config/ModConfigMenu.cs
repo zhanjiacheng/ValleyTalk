@@ -12,7 +12,7 @@ namespace ValleyTalk
         private static IManifest ModManifest;
         private static ModEntry _modEntry;
 
-        private static readonly string[] ModelChoices = new[] { "Flash", "Pro" };
+        private static readonly string[] ModelChoices = new[] { "Flash", "Plus", "Max" };
 
         private static Dictionary<int,string> freqs = new Dictionary<int, string>()
                     {
@@ -62,8 +62,8 @@ namespace ValleyTalk
 #endif
             ConfigMenu.AddTextOption(
                 mod: ModManifest,
-                name: () => "DeepSeek API Key",
-                tooltip: () => "API Key for DeepSeek (via OpenRouter).",
+                name: () => "阿里百炼 API Key",
+                tooltip: () => "阿里云百炼 DashScope API Key.",
                 getValue: () => Config.ApiKey,
                 setValue: (value) =>{ Config.ApiKey = value; SetLlm(); },
                 fieldId: "ApiKey"
@@ -71,15 +71,15 @@ namespace ValleyTalk
 
             ConfigMenu.AddTextOption(
                 mod: ModManifest,
-                name: () => "Model",
-                tooltip: () => "Flash: deepseek-v4-flash。Pro: deepseek-v4-pro。",
-                getValue: () => Config.DeepSeekModel,
+                name: () => "模型",
+                tooltip: () => "Flash: qwen3.6-flash（最快）。Plus: qwen3.6-plus。Max: qwen3.6-max（最强）。",
+                getValue: () => Config.DashScopeModel,
                 setValue: (value) =>
                 { 
-                    Config.DeepSeekModel = value; SetLlm();
+                    Config.DashScopeModel = value; SetLlm();
                 },
                 allowedValues: ModelChoices,
-                fieldId: "DeepSeekModel"
+                fieldId: "DashScopeModel"
             );
             ConfigMenu.AddTextOption(
                 mod: ModManifest,
@@ -121,11 +121,14 @@ namespace ValleyTalk
 
         private static void SetLlm()
         {
-            string modelId = ModEntry.Config.DeepSeekModel == "Pro"
-                ? "deepseek-v4-pro"
-                : "deepseek-v4-flash";
+            string modelId = ModEntry.Config.DashScopeModel switch
+            {
+                "Plus" => "qwen3.6-plus",
+                "Max" => "qwen3.6-max",
+                _ => "qwen3.6-flash"
+            };
 
-            Llm.SetLlm(typeof(LlmDeepSeek), apiKey: ModEntry.Config.ApiKey, modelName: modelId);
+            Llm.SetLlm(typeof(LlmDashScope), apiKey: ModEntry.Config.ApiKey, modelName: modelId);
         }
     }
 }

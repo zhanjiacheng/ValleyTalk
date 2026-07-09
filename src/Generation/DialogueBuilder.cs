@@ -81,6 +81,7 @@ namespace ValleyTalk
         
         internal async Task<string> GenerateResponse(NPC instance, List<ConversationElement> conversation, bool dontSkipNext = false)
         {
+            TimingLog.Checkpoint("[DialogueBuilder] GenerateResponse 入口");
             var character = GetCharacter(instance);
 
             DialogueContext context = LastContext ?? GetBasicContext(instance);
@@ -91,12 +92,14 @@ namespace ValleyTalk
             LastContext = context;
             var theLine = await character.CreateBasicDialogue(context);
             string formattedLine = FormatLine(theLine);
+            TimingLog.Checkpoint("[DialogueBuilder] FormatLine 完成");
             //return formattedLine;
             return $"{(dontSkipNext ? "" : "skip#")}{formattedLine}";
         }
 
         internal async Task<Dialogue> GenerateGift(NPC instance, StardewValley.Object gift, int taste)
         {
+            TimingLog.Checkpoint("[DialogueBuilder] GenerateGift 入口");
             var character = GetCharacter(instance);
             DialogueContext context = GetBasicContext(instance);
             context.Accept = gift;
@@ -104,12 +107,14 @@ namespace ValleyTalk
             LastContext = context;
             var theLine = await character.CreateBasicDialogue(context);
             string formattedLine = FormatLine(theLine);
+            TimingLog.Checkpoint("[DialogueBuilder] FormatLine 完成");
             var newDialogue = new Dialogue(instance, $"Accept_{gift.Name}", formattedLine);
             return newDialogue;
         }
 
         internal async Task<Dialogue> Generate(NPC instance, string dialogueKey, string originalLine = "")
         {
+            TimingLog.Checkpoint("[DialogueBuilder] Generate 入口");
             var character = GetCharacter(instance);
             DialogueContext context = GetBasicContext(instance);
             var splitKey = dialogueKey.Split('_');
@@ -127,6 +132,7 @@ namespace ValleyTalk
             context.ScheduleLine = originalLine;
             var theLine = await character.CreateBasicDialogue(context);
             string formattedLine = FormatLine(theLine);
+            TimingLog.Checkpoint("[DialogueBuilder] FormatLine 完成");
             return new Dialogue(instance, dialogueKey, formattedLine);
         }
 

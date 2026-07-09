@@ -1,8 +1,9 @@
 {
   "EnableMod": true,
   "Debug": false,
+  "DebugTiming": false,
   "ApiKey": "ENTER YOUR KEY",
-  "DeepSeekModel": "Flash",
+  "DashScopeModel": "Flash",
   "QueryTimeout": 30,
   "GeneralFrequency": 4,
   "TypedResponses": "With Generated",

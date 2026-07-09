@@ -49,6 +49,7 @@ public class AsyncBuilder
     {
         try
         {
+            TimingLog.Start($"[AsyncBuilder] 开始生成 (NPC: {_speakingNpc?.Name}, 类型: {_awaitedType})");
             var npc = _speakingNpc;
 
             Task<Dialogue> dialogueTask = null;
@@ -70,6 +71,7 @@ public class AsyncBuilder
             }
 
             var newDialogue = await dialogueTask;
+            TimingLog.Checkpoint("[AsyncBuilder] LLM 生成完成，准备更新 UI");
             
             // Ensure UI updates happen on main thread for Android compatibility
             if (AndroidHelper.IsAndroid)
@@ -102,6 +104,7 @@ public class AsyncBuilder
                     Game1.DrawDialogue(newDialogue);
                     npc.CurrentDialogue.TryPop(out var _);
                 }
+                TimingLog.Stop("[AsyncBuilder] 对话已推入游戏");
             }
         }
         catch (Exception ex)

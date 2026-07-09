@@ -116,12 +116,15 @@ namespace ValleyTalk
             }
 #endif
 
-            // 映射模型选择
-            string modelId = Config.DeepSeekModel == "Pro"
-                ? "deepseek-v4-pro"
-                : "deepseek-v4-flash";
+            // 使用阿里云百炼 DashScope（通义千问 Qwen）
+            string modelId = Config.DashScopeModel switch
+            {
+                "Plus" => "qwen3.6-plus",
+                "Max" => "qwen3.6-max",
+                _ => "qwen3.6-flash"
+            };
 
-            Llm.SetLlm(typeof(LlmDeepSeek), apiKey: Config.ApiKey, modelName: modelId);
+            Llm.SetLlm(typeof(LlmDashScope), apiKey: Config.ApiKey, modelName: modelId);
 
             DialogueBuilder.Instance.Config = Config;
 

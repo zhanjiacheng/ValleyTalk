@@ -23,34 +23,45 @@ internal abstract class LlmOpenAiBase : Llm
         public string content { get; set; }
     }
 
-    internal override async Task<LlmResponse> RunInference(string systemPromptString, string gameCacheString, string npcCacheString, string promptString, string responseStart = "",int n_predict = 256,string cacheContext="",bool allowRetry = true)
+    /// <summary>
+    /// 子类可重写此方法来添加提供商特定的请求参数（如 thinking、enable_thinking 等）。
+    /// </summary>
+    internal virtual void AddProviderParams(JObject requestObj) { }
+
+    internal override async Task<LlmResponse> RunInference(string systemPromptString, string gameCacheString, string npcCacheString, string promptString, string responseStart = "",int n_predict = 100,string cacheContext="",bool allowRetry = true)
     {
-        var inputString = JsonConvert.SerializeObject(new // Changed
+        TimingLog.Checkpoint("[LlmOpenAiBase] RunInference 入口，开始序列化请求");
+
+        var requestObj = new JObject
+        {
+            ["model"] = modelName,
+            ["max_tokens"] = n_predict,
+            ["temperature"] = 0.9,
+            ["top_p"] = 0.9,
+            ["messages"] = new JArray
             {
-                model = modelName,
-                max_tokens = n_predict,
-                temperature = 0.9,
-                top_p = 0.9,
-                thinking = new { type = "disabled" },
-                messages = new PromptElement[]
-                { 
-                    new()
-                    {
-                        role = "system",
-                        content = systemPromptString
-                    },
-                    new()
-                    {
-                        role = "user",
-                        content = gameCacheString + npcCacheString + promptString
-                    }
+                new JObject
+                {
+                    ["role"] = "system",
+                    ["content"] = systemPromptString
+                },
+                new JObject
+                {
+                    ["role"] = "user",
+                    ["content"] = gameCacheString + npcCacheString + promptString
                 }
-            });
+            }
+        };
+
+        AddProviderParams(requestObj);
+
+        var inputString = requestObj.ToString(Formatting.None);
         var json = new StringContent(
             inputString,
             Encoding.UTF8,
             "application/json"
         );
+        TimingLog.Checkpoint("[LlmOpenAiBase] 请求 JSON 序列化完成，准备发送 HTTP");
 
         // call out to URL passing the object as the body, and return the result
         int retry = allowRetry ? 3 : 1;
@@ -70,6 +81,7 @@ internal abstract class LlmOpenAiBase : Llm
             {
                 // Use Android-compatible network helper
                 responseString = await NetworkHelper.MakeRequestAsync(fullUrl, inputString, CancellationToken.None, apiKey);
+                TimingLog.Checkpoint("[LlmOpenAiBase] HTTP 响应已收到，开始解析 JSON");
                 var responseJson = JObject.Parse(responseString);
 
                 if (responseJson == null)

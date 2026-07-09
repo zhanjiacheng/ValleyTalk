@@ -1,3 +1,4 @@
+using Newtonsoft.Json.Linq;
 using ValleyTalk;
 
 namespace ValleyTalk;
@@ -16,6 +17,11 @@ internal class LlmDeepSeek : LlmOpenAiBase, IGetModelNames
     public override string ExtraInstructions => "";
 
     public override bool IsHighlySensoredModel => false;
+
+    internal override void AddProviderParams(JObject requestObj)
+    {
+        requestObj["thinking"] = new JObject { ["type"] = "disabled" };
+    }
 
     public string[] GetModelNames()
     {
