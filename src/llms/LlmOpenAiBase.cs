@@ -23,12 +23,15 @@ internal abstract class LlmOpenAiBase : Llm
         public string content { get; set; }
     }
 
-    internal override async Task<LlmResponse> RunInference(string systemPromptString, string gameCacheString, string npcCacheString, string promptString, string responseStart = "",int n_predict = 2048,string cacheContext="",bool allowRetry = true)
+    internal override async Task<LlmResponse> RunInference(string systemPromptString, string gameCacheString, string npcCacheString, string promptString, string responseStart = "",int n_predict = 256,string cacheContext="",bool allowRetry = true)
     {
         var inputString = JsonConvert.SerializeObject(new // Changed
             {
                 model = modelName,
                 max_tokens = n_predict,
+                temperature = 0.9,
+                top_p = 0.9,
+                thinking = new { type = "disabled" },
                 messages = new PromptElement[]
                 { 
                     new()
@@ -51,7 +54,7 @@ internal abstract class LlmOpenAiBase : Llm
 
         // call out to URL passing the object as the body, and return the result
         int retry = allowRetry ? 3 : 1;
-        var fullUrl = $"{url}/v1/chat/completions";
+        var fullUrl = $"{url}/chat/completions";
         
         // Check network availability on Android
         if (AndroidHelper.IsAndroid && !NetworkHelper.IsNetworkAvailable())

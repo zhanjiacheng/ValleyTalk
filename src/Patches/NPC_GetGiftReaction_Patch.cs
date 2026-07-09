@@ -9,7 +9,7 @@ namespace ValleyTalk
         public static bool Prefix(ref NPC __instance, ref Dialogue __result, Farmer giver, StardewValley.Object gift, int taste)
         {
             ModEntry.SMonitor.Log($"NPC {__instance.Name} trying to get gift reaction for {gift.Name}", StardewModdingAPI.LogLevel.Trace);
-            if (!DialogueBuilder.Instance.PatchNpc(__instance, ModEntry.Config.GiftFrequency))
+            if (!DialogueBuilder.Instance.PatchNpc(__instance, ModEntry.Config.GeneralFrequency))
             {
                 return true;
             }

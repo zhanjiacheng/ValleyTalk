@@ -12,31 +12,6 @@ namespace ValleyTalk
         public static IMonitor SMonitor;
         public static IModHelper SHelper { get; private set; }
         public static ModConfig Config;
-        public static Dictionary<string, Type> LlmMap
-        {
-            get
-            {
-                if (_llmMap == null)
-                {
-                // Build dictionary of LLM types (things that inherit from the LLM class)
-                _llmMap = new Dictionary<string, Type>(StringComparer.InvariantCultureIgnoreCase)
-                {
-#if DEBUG
-                    {"Dummy", typeof(LlmDummy)},
-#endif
-                    {"LlamaCpp", typeof(LlmLlamaCpp)},
-                    {"Google", typeof(LlmGemini)},
-                    {"Anthropic", typeof(LlmClaude)},
-                    {"OpenAI", typeof(LlmOpenAi)},
-                    {"Mistral", typeof(LlmMistral)},
-                    {"DeepSeek", typeof(LlmDeepSeek)},
-                    {"VolcEngine", typeof(LlmVolcEngine)},
-                    {"OpenAiCompatible", typeof(LlmOAICompatible)}
-                };
-                }
-                return _llmMap;
-            }
-        }
         public static bool BlockModdedContent { get; private set; } = false;
         private static CultureInfo _locale;
         public static string Language 
@@ -90,7 +65,6 @@ namespace ValleyTalk
 
         private static bool? _fixPunctuation = null;
         private static string _localeCacheFixPunctuation = string.Empty;
-        private static Dictionary<string, Type> _llmMap;
 
         public static bool FixPunctuation
         {
@@ -142,13 +116,12 @@ namespace ValleyTalk
             }
 #endif
 
-            if (!LlmMap.TryGetValue(Config.Provider, out var llmType))
-            {
-                Log.Error($"Invalid LLM type: {Config.Provider}");
-                return;
-            }
+            // 映射模型选择
+            string modelId = Config.DeepSeekModel == "Pro"
+                ? "deepseek-v4-pro"
+                : "deepseek-v4-flash";
 
-            Llm.SetLlm(llmType, modelName: Config.ModelName, apiKey: Config.ApiKey, url: Config.ServerAddress, promptFormat: Config.PromptFormat);
+            Llm.SetLlm(typeof(LlmDeepSeek), apiKey: Config.ApiKey, modelName: modelId);
 
             DialogueBuilder.Instance.Config = Config;
 

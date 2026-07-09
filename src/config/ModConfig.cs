@@ -10,17 +10,13 @@ namespace ValleyTalk
 
         public bool EnableMod { get; set; } = true;
         public bool Debug { get; set; } = false;
-        public string Provider { get; set; } = "Mistral";
-        public string ModelName { get; set; } = "";
-        public string ServerAddress { get; set; } = "https://openrouter.ai/api";
-        public string PromptFormat { get; set; } = "[INST] {system}\n{prompt}[/INST]\n{response_start}";
-        public int QueryTimeout { get; set; } = 60;
         public string ApiKey { get; set; } = string.Empty;
-        public bool ApplyTranslation { get; set; } = false;
+        public string DeepSeekModel { get; set; } = "Flash"; // "Pro" or "Flash"
+        public int QueryTimeout { get; set; } = 30;
         public int GeneralFrequency { get; set; } = 4;
-        public int MarriageFrequency { get; set; } = 4;
-        public int GiftFrequency { get; set; } = 4;
+        public bool ApplyTranslation { get; set; } = false;
         public string TypedResponses { get; set; } = "With Generated";
+        public SButton InitiateTypedDialogueKey { get; internal set; } = SButton.LeftAlt;
         public string DisableCharacters
         {
             get => disableCharacters;
@@ -35,8 +31,6 @@ namespace ValleyTalk
             }
         }
 
-        public SButton InitiateTypedDialogueKey { get; internal set; } = SButton.LeftAlt;
         internal List<string> DisabledCharactersList { get; private set; } = new List<string>();
-        public bool SuppressConnectionCheck { get; set; } = false;
     }
 }
