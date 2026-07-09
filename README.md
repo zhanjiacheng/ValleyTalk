@@ -91,10 +91,12 @@ POST https://api.deepseek.com/chat/completions
 
 ### 测试工具
 
-Python 交互式对话模拟器（可直接测试角色对话效果）：
+`tools/valleytalk_chat.py` 是交互式对话模拟器，直接从 ContentPack 加载角色档案，无需启动游戏即可测试对话效果：
 
 ```bash
-python C:\Users\izhan\AppData\Local\Temp\opencode\valleytalk_chat.py
+cd tools
+python valleytalk_chat.py
+# 首次运行会提示输入 API Key，自动保存
 ```
 
 ## 原版功能
