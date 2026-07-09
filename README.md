@@ -1,114 +1,113 @@
-# ValleyTalk
+# ValleyTalk (DeepSeek 分支)
 
-[![Nexus Mods](https://img.shields.io/badge/Nexus%20Mods-30319-orange)](https://www.nexusmods.com/stardewvalley/mods/30319)
-[![Version](https://img.shields.io/badge/version-1.3.0-blue)](https://github.com/dandm1/ValleyTalk/releases)
+[![Version](https://img.shields.io/badge/version-1.4.0--ds-blue)](https://github.com/zhanjiacheng/ValleyTalk)
 
-**Infinite dialogue for Stardew Valley** - A SMAPI mod that uses AI language models to generate dynamic, contextual conversations with NPCs.
+**基于 [dandm1/ValleyTalk](https://github.com/dandm1/ValleyTalk) 的 DeepSeek 定制分支**
 
-## Features
-
-- 🤖 **AI-Powered Dialogue**: Generate infinite, contextual conversations using various AI language models
-- 🎭 **Character Consistency**: Each NPC maintains their unique personality and speaking style
-- 🌍 **Multi-Language Support**: Translation on the fly or using prompt translation packs.
-- 📱 **Cross-Platform**: Works on PC, Mac and Linux.
-- 🔌 **Multiple AI Providers**: Support for OpenAI, Anthropic Claude, Google Gemini, Mistral, DeepSeek, and more
-- 📚 **Content Pack Support**: Full Content Patcher support and content pack for SVE.
-- ⚙️ **Highly Configurable**: Extensive configuration options through Generic Mod Config Menu
-
-## Configuration
-
-ValleyTalk requires configuration of an AI language model provider. The mod supports:
-
-- **OpenAI** (GPT-3.5, GPT-4)
-- **Anthropic Claude**
-- **Google Gemini**
-- **Mistral AI**
-- **DeepSeek**
-- **VolcEngine**
-- **LlamaCpp** (for local models)
-- **OpenAI-Compatible APIs**
-
-Configure your preferred provider through the mod's config file or using Generic Mod Config Menu.
-
-## Architecture
-
-The mod uses Harmony patches to intercept dialogue requests and generates contextually appropriate responses based on:
-- Character personalities and relationships
-- Current game state and events
-- Player history and interactions
-- Seasonal and temporal context
-
-### Key Components
-
-- **DialogueBuilder**: Core AI dialogue generation system
-- **Character Management**: Maintains NPC personality profiles
-- **Event History**: Tracks game events for contextual awareness
-- **LLM Integration**: Supports multiple AI provider APIs
-- **Content Packs**: Modular character and prompt system
-
-## Development
-
-### Building from Source
-
-```bash
-# Clone the repository
-git clone https://github.com/dandm1/ValleyTalk.git
-cd ValleyTalk
-
-# Build the project
-dotnet build src/ValleyTalk.csproj
-```
-
-### Project Structure
-
-```
-ValleyTalk/
-├── src/                    # Main mod source code
-│   ├── llms/              # AI provider implementations
-│   ├── config/            # Files related to mod configuration
-│   ├── Generation/        # Dialogue generation logic
-│   ├── Patches/           # Harmony patches
-│   ├── Interop/           # API for interaction with other mods
-│   └── UI/                # User interface components
-├── ContentPack/           # Base content pack
-│   └── assets/            # Character bios and prompts
-└── Extensions/            # Mod extensions (SVE support)
-```
-
-## API & Mod Interoperability
-
-ValleyTalk provides an API for other mods to interact with the dialogue system:
-
-```csharp
-// Example: Access the ValleyTalk interface
-var vtInterface = Helper.ModRegistry.GetApi<IValleyTalkInterface>("dandm1.ValleyTalk");
-```
-This allows other mods to temporarily override parts of the prompt for specific game characters, to update the results based on that mod's context.
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## License
-
-This project is available under LGPL v3.
-
-## Support
-
-- **Issues**: Report bugs and request features on [GitHub Issues](https://github.com/dandm1/ValleyTalk/issues)
-- **Nexus Mods**: Community discussion on the [mod page](https://www.nexusmods.com/stardewvalley/mods/30319)
-
-## Acknowledgments
-
-- Built with [SMAPI](https://smapi.io/) by Pathoschild
-- Uses Harmony for runtime patching
-- Stardew Valley by ConcernedApe
-- Community translations and feedback
+> 原版支持 OpenAI、Claude、Gemini 等多家 AI 提供商。本分支精简为**只支持 DeepSeek**，配置极简化，强制关闭深度思考模式以提升响应速度。
 
 ---
 
-*Enhance your Stardew Valley experience with endless, personalized conversations!*
+## 本分支改动
+
+### 核心改动
+
+| 改动 | 说明 |
+|------|------|
+| **只支持 DeepSeek** | 移除 OpenAI、Claude、Gemini、Mistral、LlamaCpp、VolcEngine 等所有其他提供商 |
+| **配置极简化** | config.json 从 14 个字段减到 7 个，只需填 API Key |
+| **关闭深度思考** | `thinking: {"type": "disabled"}`，避免 NPC 对话前做 chain-of-thought 推理导致的长时间等待 |
+| **优化生成参数** | `max_tokens=256`（原 2048）、`temperature=0.9`、`top_p=0.9` |
+| **两个模型可选** | Flash（`deepseek-v4-flash`，推荐）和 Pro（`deepseek-v4-pro`） |
+| **API 直连** | 直接调用 DeepSeek 官方 API，去除 OpenRouter 依赖 |
+
+### 删除的文件
+
+`src/llms/` 从 13 个文件精简到 4 个，移除了:
+- `LlmClaude.cs`, `LlmGemini.cs`, `LlmMistral.cs`, `LlmOpenAI.cs`
+- `LlmLlamaCpp.cs`, `LlmVolcEngine.cs`, `LlmOAICompatible.cs`, `LlmDummy.cs`
+- `PromptFormatter.cs`（死代码）
+
+## 快速开始
+
+### 1. 配置
+
+编辑 `src/config.json`：
+
+```json
+{
+  "EnableMod": true,
+  "ApiKey": "sk-你的deepseek密钥",
+  "DeepSeekModel": "Flash",
+  "QueryTimeout": 30,
+  "GeneralFrequency": 4,
+  "ApplyTranslation": false,
+  "DisableCharacters": ""
+}
+```
+
+| 字段 | 说明 |
+|------|------|
+| `ApiKey` | DeepSeek API 密钥（从 [platform.deepseek.com](https://platform.deepseek.com) 获取） |
+| `DeepSeekModel` | `"Flash"` 或 `"Pro"`，对应 `deepseek-v4-flash` / `deepseek-v4-pro` |
+| `ApplyTranslation` | `true` 时模型用中文输出 |
+| `GeneralFrequency` | AI 对话生成频率（0=从不 ~ 4=总是） |
+
+### 2. 编译
+
+```bash
+# 先改 csproj 里的 GamePath 为你的星露谷安装路径
+# 然后编译
+dotnet build src/ValleyTalk.csproj --configuration Release
+```
+
+依赖：.NET 6.0 SDK、SMAPI 4.1.0+
+
+### 3. 运行
+
+构建后自动部署到 `Mods/ValleyTalk/`，启动游戏即可。
+
+## 技术细节
+
+### 发送的 API 请求
+
+```json
+POST https://api.deepseek.com/chat/completions
+
+{
+  "model": "deepseek-v4-flash",
+  "max_tokens": 256,
+  "temperature": 0.9,
+  "top_p": 0.9,
+  "thinking": {"type": "disabled"},
+  "messages": [
+    {"role": "system", "content": "..."},
+    {"role": "user", "content": "..."}
+  ]
+}
+```
+
+`thinking: {"type": "disabled"}` 强制关闭深度思考，每次对话生成时间从原来的 15-20 秒降低到 1-2 秒。
+
+### 测试工具
+
+Python 交互式对话模拟器（可直接测试角色对话效果）：
+
+```bash
+python C:\Users\izhan\AppData\Local\Temp\opencode\valleytalk_chat.py
+```
+
+## 原版功能
+
+除提供商选择外，以下原版功能保持不变：
+
+- Harmony 补丁拦截 NPC 对话，实时生成 AI 对话
+- 内容包系统（Content Patcher + NPC 角色档案）
+- 多轮对话记忆（事件历史跟踪）
+- 表情指令支持（`$h`/`$s`/`$l`/`$a` 控制肖像表情）
+- 模组互操作 API（`IValleyTalkInterface`）
+- Generic Mod Config Menu 支持
+
+## License
+
+LGPL v3（继承原项目）
